@@ -30,24 +30,7 @@ fi
 if [[ ! -x "$LIMINE_DIR/limine" ]]; then
     make -C "$LIMINE_DIR" -j2
 fi
-for file in limine-bios.sys limine-bios-cd.bin limine-uefi-cd.bin BOOTX64.EFI limine; do
-    [[ -f "$LIMINE_DIR/$file" ]] || { echo "Limine missing $file" >&2; exit 5; }
-done
-STAGE="$ROOT/build/iso_root"
-rm -rf -- "$STAGE"
-mkdir -p "$STAGE/boot/limine" "$STAGE/EFI/BOOT" "$STAGE/boot"
-cp "$ROOT/build/brahma.elf" "$STAGE/boot/brahma.elf"
-cp "$ROOT/boot/limine.conf" "$STAGE/boot/limine/limine.conf"
-cp "$LIMINE_DIR/limine-bios.sys" "$LIMINE_DIR/limine-bios-cd.bin" \
-   "$LIMINE_DIR/limine-uefi-cd.bin" "$STAGE/boot/limine/"
-cp "$LIMINE_DIR/BOOTX64.EFI" "$STAGE/EFI/BOOT/BOOTX64.EFI"
 ISO="$ROOT/build/parama.iso"
-xorriso -as mkisofs -R -r -J \
-    -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 \
-    -boot-info-table -hfsplus -apm-block-size 2048 \
-    --efi-boot boot/limine/limine-uefi-cd.bin \
-    -efi-boot-part --efi-boot-image --protective-msdos-label \
-    -o "$ISO" "$STAGE"
-"$LIMINE_DIR/limine" bios-install "$ISO"
+bash "$ROOT/tools/scripts/make_iso.sh" "$ISO"
 printf '[BUILD] ISO ready: %s\n' "$ISO"
 printf '[BUILD] ISO SHA256: '; sha256sum "$ISO" | cut -d' ' -f1
