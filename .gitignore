@@ -1,0 +1,11 @@
+/build/
+/.cache/
+/.idea/
+/.vscode/
+*.iso
+*.vdi
+*.vbox
+*.vbox-prev
+*.log
+*.swp
+.DS_Store

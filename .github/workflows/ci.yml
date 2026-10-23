@@ -1,0 +1,30 @@
+name: PARAMA build and virtual-machine smoke test
+on:
+  push:
+  pull_request:
+jobs:
+  build-and-boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux build and VM prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld cmake ninja-build curl xorriso \
+            build-essential qemu-system-x86 ovmf python3
+      - name: Build verified Limine UEFI ISO
+        run: bash tools/scripts/build.sh
+      - name: Run memory, framebuffer, and ELF host tests
+        run: bash tools/scripts/check.sh
+      - name: Boot under OVMF/QEMU and validate COM1
+        run: bash tools/scripts/run_qemu_qa.sh
+      - name: Preserve VM serial evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parama-ci-evidence
+          path: |
+            build/qemu-com1.log
+            build/brahma.elf
+          if-no-files-found: warn
