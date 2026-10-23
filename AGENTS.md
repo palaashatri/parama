@@ -1,6 +1,6 @@
 # PARAMA OS — Authoritative Engineering Specification / AGENTS.md
 
-**Status date:** 2026-10-22  
+**Status date:** 2026-10-24  
 **Repository:** standalone freestanding operating-system research project  
 **Target:** x86-64, UEFI, Limine, 4-level paging initially  
 **Kernel:** BRAHMA, C23, supervisor/ring 0  
@@ -24,8 +24,9 @@ implemented and host checks pass but hardware acceptance has not been executed;
 
 | Gate | State | Verified evidence | Still required |
 |---|---|---|---|
-| M0 source/toolchain | CODE | Clang 17 C23 freestanding ELF64 compiled; ELF layout test passes; two clean build dirs give identical SHA-256 | Fresh Windows/WSL installation, UEFI boot ISO creation |
-| M1 boot diagnostic | CODE | Boot request markers, serial source, frame allocator host tests, framebuffer unit test | `run_qa.ps1` boot in Windows VirtualBox; screenshot manual review; CI QEMU run |
+| M0 source/toolchain | PASS | 2026-10-24, fresh Ubuntu 24.04 (cloud container, not WSL), Clang/LLD 18.1.3: `build.sh` downloads Limine v12.9.3, SHA-256 verifies, ISO built with checksum printed; `check.sh` passes; three clean build dirs give identical kernel SHA-256 `5d38aa69…456ee` | Re-run on a WSL2 host to confirm the Windows path (no change expected) |
+| M1 boot diagnostic — QEMU/OVMF | PASS | 2026-10-24, QEMU 8.2.2 + OVMF `OVMF_CODE_4M.fd`, kernel `5d38aa69…456ee`: `run_qemu_qa.sh --runs 10 --resolution 800x600 --resolution 640x480` → 30/30 cold boots; each has ordered COM1 markers, no fatal, granted mode equal to requested, PNG captured, and screen pixel-identical to a host render of `boot_display.c`; PNGs at 1280x800 and 640x480 manually reviewed (text reads correctly). CI runs the same gate and uploads `build/qa/qemu/` | — (320x200: OVMF offers no mode below 640x480; covered only by host unit test) |
+| M1 boot diagnostic — VirtualBox 7.2 (primary) | CODE | Same kernel; harness `run_qa.ps1` unchanged | `run_qa.ps1 -TargetMilestone BOOT` on Windows; repetition option in `run_qa.ps1`; 320x200 if the VirtualBox GOP offers it |
 | M2 memory and exceptions | PLAN | Early monotonic frame source exists, but no fully managed PMM/IDT | fault tests, allocator reclaim, VMM and paging |
 | M3 kernel threading and Ring 3 | PLAN | none | context switch, privilege boundary, isolated tasks |
 | M4 capabilities and IPC | PLAN | interface proposals only | security test matrix, transfer/revoke semantics |
@@ -54,12 +55,22 @@ in M1, no Ring 3 process exists, and no bootloader-reclaimable memory is freed.
 Accepted M1 serial messages: `[BHUMI] Boot frame smoke test passed`, followed by
 `[BRAHMA] Boot diagnostic framebuffer drawn` and `[BRAHMA] BOOT_OK`, and no `[BRAHMA][FATAL]`. A valid VM test also preserves a
 PNG. `run_qa.ps1 -TargetMilestone BOOT` checks only these narrow properties.
+The kernel also prints `[BRAHMA] Framebuffer: WxHxBPP pitch P` before drawing,
+because Limine silently falls back when a configured `resolution:` is
+unavailable; a resolution gate must compare against this line, not the request.
+`run_qemu_qa.sh` additionally requires the markers in order and a screen that
+matches a host render of `boot_display.c` (`tools/tests/render_splash.c`)
+pixel-for-pixel.
 
-**M1 is not signed off until the VM test actually passes.** The ISO packaging
-script downloads Limine v12.9.3 only from the official release, validates SHA-256
+**M1 is signed off on QEMU/OVMF only; the VirtualBox gate is still pending.**
+The ISO packaging (`build.sh` → `make_iso.sh`) downloads Limine v12.9.3 only
+from the official release, validates SHA-256
 `9f42fe9ea2e84d71056529969b1d5c24ba9a2287ffcc01bcce58b0ef8aa98b1d`,
-and follows upstream's hybrid ISO method. This packaging code has not been run
-in the initial authoring environment due to missing network and xorriso.
+and follows upstream's hybrid ISO method; this was first executed on 2026-10-24.
+
+First execution found two defects that every host check and serial marker had
+passed: the glyph table had no `N` (screen read `KER EL O LI E`), and at 320x200
+the title clipped at the right edge. Both are fixed, with unit tests.
 
 ---
 
@@ -383,8 +394,11 @@ memory-map requests, early boot frame smoke test, initial framebuffer splash.
 PNG screenshot shows **PARAMA OS / BRAHMA BOOT / KERNEL ONLINE**, no unexpected
 exceptions, deterministic repeated power-on/power-off 10 times. Verify at
 320x200 and at one resolution >=800x600. Capture PNG and COM1 for each run.
-The current script only runs one boot; implement a controlled repetition option
-before declaring ten-run stability. BOOT is pending until real VM execution.
+`run_qemu_qa.sh --runs N --resolution WxH` provides controlled repetition and
+mode selection for QEMU/OVMF; `run_qa.ps1` still runs one boot and needs the
+same option before ten-run VirtualBox stability can be declared. OVMF offers no
+mode below 640x480, and UEFI GOP firmware generally may not offer 320x200 either;
+a mode the firmware cannot provide is recorded as unavailable, never as passed.
 
 ### M2 — BHŪMI and VAJRA
 
