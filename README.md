@@ -19,7 +19,13 @@ An eventual goal is to host a **native [SLOPOS](https://github.com/palaashatri/r
 
 **PLANNED, not implemented.** This is not part of the current M0–M10 kernel/desktop acceptance; the existing VirtualBox/QEMU boot and isolation milestones come first. See [AGENTS.md §5.1](AGENTS.md#51-future-slopos-desktop-hosting-goal-separate-gated-integration-track).
 
-## Build on Windows (VirtualBox + WSL2)## Build on Windows (VirtualBox + WSL2)
+## Platform compatibility and evidence policy
+
+PARAMA's goal is native capability-enforced computing, not a Linux or Windows compatibility facade. Driver research may reuse concepts and appropriately licensed upstream implementations, but Linux graphics drivers require real kernel-specific DMA, memory, interrupts, firmware and scheduling support—not a simple recompilation. Wine/Raven-like Windows execution remains a separately gated **future user-space compatibility personality** after genuine PARAMA process, storage, graphics and IPC fundamentals are proven.
+
+Every milestone requires repeatable positive/negative VM tests, exact toolchain and source versions, failure traces, component-level licensing and honest hardware/performance claims. A kernel boot splash, loaded executable or isolated benchmark never proves a full desktop or compatibility layer. See [AGENTS.md §5.2](AGENTS.md#52-driver-portability-windows-compatibility-and-evidence-discipline).
+
+## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.
 VirtualBox runs as a native **Windows** application. WSL only runs the Linux
