@@ -67,6 +67,15 @@ void kmain(void) {
     serial_line("[BHUMI] Boot frame smoke test passed");
     if (framebuffer_request.response && framebuffer_request.response->framebuffer_count > 0) {
         struct limine_framebuffer *fb = framebuffer_request.response->framebuffers[0];
+        if (fb) {
+            /* Record the mode actually granted: Limine silently falls back if
+             * the configured resolution is unavailable. */
+            serial_write("[BRAHMA] Framebuffer: ");
+            serial_dec64(fb->width); serial_write("x");
+            serial_dec64(fb->height); serial_write("x");
+            serial_dec64(fb->bpp); serial_write(" pitch ");
+            serial_dec64(fb->pitch); serial_write("\n");
+        }
         if (boot_display_draw(fb)) serial_line("[BRAHMA] Boot diagnostic framebuffer drawn");
         else serial_line("[BRAHMA][WARN] Framebuffer mode unsupported; serial-only boot");
     } else {

@@ -27,6 +27,12 @@ PARAMA's goal is native capability-enforced computing, not a Linux or Windows co
 
 Every milestone requires repeatable positive/negative VM tests, exact toolchain and source versions, failure traces, component-level licensing and honest hardware/performance claims. A kernel boot splash, loaded executable or isolated benchmark never proves a full desktop or compatibility layer. See [AGENTS.md §5.2](AGENTS.md#52-driver-portability-windows-compatibility-and-evidence-discipline).
 
+## Future Linux userspace compatibility and original apps
+
+[Vinix](https://vinix-os.org/) suggests evaluating a **bounded Linux ELF/syscall compatibility personality** after PARAMA has independently proven native Ring 3, capability IPC, ELF/runtime, files and process lifecycle. [VitruvianOS](https://v-os.dev/) suggests treating session supervision, filesystem metadata and multimedia as coherent platform services. Both are **research references**, not code imports or present functionality; BRAHMA remains a capability-oriented independent microkernel. See [AGENTS.md §5.2.1–2](AGENTS.md#521-vinixvitruvianos-research-compatibility-personalities-services-and-practical-userspace).
+
+A future SLOPOS desktop on PARAMA may expose only **owner-authored, license-audited apps** through an optional catalog. Tricycle and texture-auto-upscaler are forks and excluded from first-party branding. JTorch and Benchmarks are also excluded from the first-party **desktop application** catalog because they are library/QA tools, not desktop products; their independent development continues. Every Java, Python, Rust UI or ML app needs a **real PARAMA-specific runtime/graphics/ABI and memory proof**; no app or Linux/Wine binary runs there merely because its Linux version does. Small-device installations must avoid eager heavyweight runtimes and model files.
+
 ## Future Raspberry Pi Zero 2 W efficiency and ARM64 goal
 
 The **Pi Zero 2 W** (ARM Cortex-A53 ×4 at 1 GHz, **512 MB RAM**) is PARAMA's deliberately constrained future hardware reference. Kernel, IPC, driver and compositor architectures should be frugal by design: bounded memory/queues, event-driven idle behavior, prompt native input, safe cancellation, honest low-memory failure and graceful opt-out of heavyweight graphical/AI features. Native SLOPOS on PARAMA would share its Classic/Modern themes while keeping SURYA as compositor.
@@ -45,7 +51,7 @@ CMake >=3.28, Ninja, curl, tar, xorriso, GCC/make, Python 3):
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y clang lld cmake ninja-build curl xorriso \
+sudo apt-get install -y clang lld libclang-rt-dev cmake ninja-build curl xorriso \
   build-essential python3
 ```
 
@@ -82,11 +88,22 @@ bash tools/scripts/build.sh
 bash tools/scripts/check.sh
 ```
 
-On a Linux machine with QEMU/OVMF installed, a secondary UEFI boot test is:
+On a Linux machine with QEMU/OVMF installed (`sudo apt-get install -y
+qemu-system-x86 ovmf`), a secondary UEFI boot test is:
 
 ```bash
-bash tools/scripts/run_qemu_qa.sh
+bash tools/scripts/run_qemu_qa.sh                       # one boot, firmware default mode
+bash tools/scripts/run_qemu_qa.sh --runs 10 \
+  --resolution 800x600 --resolution 640x480             # M1 QEMU gate, as CI runs it
 ```
+
+Each boot is a fresh QEMU process. It must show the COM1 markers in order with
+no fatal, report a framebuffer mode equal to any `--resolution` requested
+(Limine silently falls back when a mode is unavailable, so a mismatch fails),
+and produce a screen identical pixel-for-pixel to a host render of the same
+display code. Evidence (`run-NN.com1.log`, `run-NN.png`, `summary.txt`) is kept
+under `build/qa/qemu/`. OVMF offers no mode below 640x480, so `320x200` cannot
+be exercised under QEMU.
 
 ## Existing proof
 
@@ -101,9 +118,14 @@ The downloadable source bundle includes the verified `build/brahma.elf` for
 inspection, but **no prepackaged bootable ISO**: the hybrid ISO is assembled
 with the pinned official Limine bootloader using `tools/scripts/build.sh`.
 
-**Not yet proven:** booting with Limine v12.9.3 on VirtualBox/OVMF or QEMU,
-serial COM1 handling in a running VM, and correctness of actual display output.
-Do not confuse the compiler/host test evidence with the later VM acceptance gate.
+**Proven under QEMU/OVMF (2026-10-24):** the pinned Limine v12.9.3 download
+and SHA-256 verify; the ISO builds on a fresh Ubuntu 24.04 (Clang 18, LLD 18);
+30/30 cold UEFI boots (10 each at 1280x800, 800x600, 640x480) pass the M1
+checks, including pixel-exact screen comparison. See AGENTS.md section 0.
+
+**Not yet proven:** booting on VirtualBox (the primary M1 platform) and the
+320x200 mode on real firmware. Do not confuse QEMU evidence with the
+VirtualBox acceptance gate.
 
 ## Project organization
 
@@ -116,13 +138,15 @@ PARAMA/
   boot/limine.conf              boot loader entry
   third_party/limine_min.h      initial minimal protocol ABI, 0BSD
   tools/scripts/build.sh        reproducible ISO build
+  tools/scripts/make_iso.sh     ISO packaging (optional Limine resolution variant)
   tools/scripts/build.ps1       Windows -> named Ubuntu WSL bridge
   tools/scripts/build-docker.ps1 Windows -> Docker Desktop alternative
   toolchain/Dockerfile           Docker-based Linux toolchain
   tools/scripts/run_qa.ps1      Windows VirtualBox harness
-  tools/scripts/run_qemu_qa.sh  Linux OVMF smoke harness
+  tools/scripts/run_qemu_qa.sh  Linux OVMF boot gate (repeat runs, resolutions)
+  tools/scripts/qemu_boot_qa.py one QEMU boot: COM1, screendump, pixel check
   tools/scripts/check.sh        host-side tests
-  tools/tests/                  allocator, framebuffer, ELF tests
+  tools/tests/                  allocator, framebuffer, ELF tests, splash reference renderer
   .github/workflows/ci.yml     hosted build + boot regression
 ```
 
