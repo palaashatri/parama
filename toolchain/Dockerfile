@@ -3,7 +3,7 @@
 FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang lld cmake ninja-build curl ca-certificates xorriso \
+    clang lld libclang-rt-dev cmake ninja-build curl ca-certificates xorriso \
     build-essential make tar coreutils python3 && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /work

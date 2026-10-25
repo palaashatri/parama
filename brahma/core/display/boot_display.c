@@ -35,6 +35,7 @@ static const glyph_t glyphs[] = {
     { 'K', {0x7f,0x08,0x14,0x22,0x41} },
     { 'L', {0x7f,0x40,0x40,0x40,0x40} },
     { 'M', {0x7f,0x02,0x0c,0x02,0x7f} },
+    { 'N', {0x7f,0x04,0x08,0x10,0x7f} },
     { 'O', {0x3e,0x41,0x41,0x41,0x3e} },
     { 'P', {0x7f,0x09,0x09,0x09,0x06} },
     { 'R', {0x7f,0x09,0x19,0x29,0x46} },
@@ -75,7 +76,8 @@ bool boot_display_draw(struct limine_framebuffer *fb) {
     rect(fb, 0, 0, fb->width, 8, accent);
     rect(fb, 40, 54, 54, 54, accent);
     rect(fb, 54, 68, 26, 26, background);
-    label(fb, 112, 52, "PARAMA OS", 4, white);
+    /* At scale 4 the title spans x=112..328 and would clip at 320 wide. */
+    label(fb, 112, 52, "PARAMA OS", fb->width >= 360 ? 4u : 3u, white);
     label(fb, 112, 91, "BRAHMA BOOT", 2, gray);
     rect(fb, 40, 144, fb->width > 80 ? fb->width - 80 : 0, 1, gray);
     label(fb, 40, 166, "KERNEL ONLINE", 2, white);

@@ -45,7 +45,7 @@ CMake >=3.28, Ninja, curl, tar, xorriso, GCC/make, Python 3):
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y clang lld cmake ninja-build curl xorriso \
+sudo apt-get install -y clang lld libclang-rt-dev cmake ninja-build curl xorriso \
   build-essential python3
 ```
 
@@ -82,11 +82,22 @@ bash tools/scripts/build.sh
 bash tools/scripts/check.sh
 ```
 
-On a Linux machine with QEMU/OVMF installed, a secondary UEFI boot test is:
+On a Linux machine with QEMU/OVMF installed (`sudo apt-get install -y
+qemu-system-x86 ovmf`), a secondary UEFI boot test is:
 
 ```bash
-bash tools/scripts/run_qemu_qa.sh
+bash tools/scripts/run_qemu_qa.sh                       # one boot, firmware default mode
+bash tools/scripts/run_qemu_qa.sh --runs 10 \
+  --resolution 800x600 --resolution 640x480             # M1 QEMU gate, as CI runs it
 ```
+
+Each boot is a fresh QEMU process. It must show the COM1 markers in order with
+no fatal, report a framebuffer mode equal to any `--resolution` requested
+(Limine silently falls back when a mode is unavailable, so a mismatch fails),
+and produce a screen identical pixel-for-pixel to a host render of the same
+display code. Evidence (`run-NN.com1.log`, `run-NN.png`, `summary.txt`) is kept
+under `build/qa/qemu/`. OVMF offers no mode below 640x480, so `320x200` cannot
+be exercised under QEMU.
 
 ## Existing proof
 
@@ -101,9 +112,14 @@ The downloadable source bundle includes the verified `build/brahma.elf` for
 inspection, but **no prepackaged bootable ISO**: the hybrid ISO is assembled
 with the pinned official Limine bootloader using `tools/scripts/build.sh`.
 
-**Not yet proven:** booting with Limine v12.9.3 on VirtualBox/OVMF or QEMU,
-serial COM1 handling in a running VM, and correctness of actual display output.
-Do not confuse the compiler/host test evidence with the later VM acceptance gate.
+**Proven under QEMU/OVMF (2026-10-24):** the pinned Limine v12.9.3 download
+and SHA-256 verify; the ISO builds on a fresh Ubuntu 24.04 (Clang 18, LLD 18);
+30/30 cold UEFI boots (10 each at 1280x800, 800x600, 640x480) pass the M1
+checks, including pixel-exact screen comparison. See AGENTS.md section 0.
+
+**Not yet proven:** booting on VirtualBox (the primary M1 platform) and the
+320x200 mode on real firmware. Do not confuse QEMU evidence with the
+VirtualBox acceptance gate.
 
 ## Project organization
 
@@ -116,13 +132,15 @@ PARAMA/
   boot/limine.conf              boot loader entry
   third_party/limine_min.h      initial minimal protocol ABI, 0BSD
   tools/scripts/build.sh        reproducible ISO build
+  tools/scripts/make_iso.sh     ISO packaging (optional Limine resolution variant)
   tools/scripts/build.ps1       Windows -> named Ubuntu WSL bridge
   tools/scripts/build-docker.ps1 Windows -> Docker Desktop alternative
   toolchain/Dockerfile           Docker-based Linux toolchain
   tools/scripts/run_qa.ps1      Windows VirtualBox harness
-  tools/scripts/run_qemu_qa.sh  Linux OVMF smoke harness
+  tools/scripts/run_qemu_qa.sh  Linux OVMF boot gate (repeat runs, resolutions)
+  tools/scripts/qemu_boot_qa.py one QEMU boot: COM1, screendump, pixel check
   tools/scripts/check.sh        host-side tests
-  tools/tests/                  allocator, framebuffer, ELF tests
+  tools/tests/                  allocator, framebuffer, ELF tests, splash reference renderer
   .github/workflows/ci.yml     hosted build + boot regression
 ```
 
