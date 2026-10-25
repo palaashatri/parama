@@ -593,6 +593,8 @@ These do **not** replace the existing M0/M1 build/boot mission or SURYA's M7 dem
 
 ### 5.2.2 Original SLOPOS first-party applications on PARAMA (future portability only)
 
+**Explicit non-candidates:** JTorch is an independent Java numerical library and Benchmarks is an independent JVM QA/benchmark harness. Neither is a bundled SLOPOS/PARAMA desktop application, a Software catalog first-party entry, or a required PARAMA port. Their normal developer-library/tool use on platforms they independently support is unaffected. Do not assign app-icon, shell/theme, GPU/UI port or SLOPOS-specific milestone work to them.
+
 SLOPOS defines the **curated original-project inventory and fork exclusion policy** in `rust-slopos/docs/CONTRACT.md` §21.8.2. PARAMA is a potential additional host for only those independently authored, license-audited apps once it has proven their runtime/toolkit dependencies. Explicitly exclude upstream forks such as `palaashatri/tricycle` and `palaashatri/texture-auto-upscaler` from first-party branding. An upstream library may be reused under its license, but it is not claimed as authored by the SLOPOS/PARAMA team.
 
 Future application targets require **runtime readiness gates**:
