@@ -27,6 +27,12 @@ PARAMA's goal is native capability-enforced computing, not a Linux or Windows co
 
 Every milestone requires repeatable positive/negative VM tests, exact toolchain and source versions, failure traces, component-level licensing and honest hardware/performance claims. A kernel boot splash, loaded executable or isolated benchmark never proves a full desktop or compatibility layer. See [AGENTS.md §5.2](AGENTS.md#52-driver-portability-windows-compatibility-and-evidence-discipline).
 
+## Future Linux userspace compatibility and original apps
+
+[Vinix](https://vinix-os.org/) suggests evaluating a **bounded Linux ELF/syscall compatibility personality** after PARAMA has independently proven native Ring 3, capability IPC, ELF/runtime, files and process lifecycle. [VitruvianOS](https://v-os.dev/) suggests treating session supervision, filesystem metadata and multimedia as coherent platform services. Both are **research references**, not code imports or present functionality; BRAHMA remains a capability-oriented independent microkernel. See [AGENTS.md §5.2.1–2](AGENTS.md#521-vinixvitruvianos-research-compatibility-personalities-services-and-practical-userspace).
+
+A future SLOPOS desktop on PARAMA may expose only **owner-authored, license-audited apps** through an optional catalog. Tricycle and texture-auto-upscaler are forks and excluded from first-party branding. JTorch and Benchmarks are also excluded from the first-party **desktop application** catalog because they are library/QA tools, not desktop products; their independent development continues. Every Java, Python, Rust UI or ML app needs a **real PARAMA-specific runtime/graphics/ABI and memory proof**; no app or Linux/Wine binary runs there merely because its Linux version does. Small-device installations must avoid eager heavyweight runtimes and model files.
+
 ## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.

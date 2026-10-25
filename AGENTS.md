@@ -564,6 +564,47 @@ These entries are aspirations, not runnable QA claims. Do not rename an M7 frame
 - Compare systems only with matching capabilities and workload. Faster launch of a tiny partial implementation cannot demonstrate superiority to Wine or a full Windows runtime. Preserve test failures and explicitly label `NOT_RUN`, `BLOCKED` or `PARTIAL` rather than declaring completion through test stubs or unconditional serial messages.
 - AI agents implement bounded approved interfaces and independently tested invariants; do not let a generated code plan redefine kernel architecture. Each PR includes scope/non-goals, reused dependency evaluation, ABI/security/license impact, reproducible commands, artifacts and hashes, negative cases, failure traces and unmet acceptance gates. Integrator retains single-source truth ownership under §§0/3/6. Production/hardware/Windows/SLOPOS promises require actual evidence, not speculative architecture prose.
 
+### 5.2.1 Vinix/VitruvianOS research: compatibility personalities, services and practical userspace
+
+**FUTURE RESEARCH ONLY — NOT IMPLEMENTED; do not reorder M0–M10.** Vinix (https://vinix-os.org/) illustrates independently developed kernels exposing enough Linux syscall/ELF/musl behavior to run selected Alpine binaries; VitruvianOS (https://v-os.dev/) illustrates keeping Linux drivers while layering BeOS APIs through service/kernel bridges. Neither project is PARAMA, their architectures differ (Vinix monolithic versus BRAHMA microkernel; VitruvianOS Linux kernel versus independent BRAHMA) and their performance/compatibility statements are not evidence of PARAMA support. Upstream code has not been imported.
+
+**Preferred long-term ecosystem order:**
+
+1. **Native first:** verified process isolation, memory manager, capability IPC, GARUDA supervision, safe ELF loader, libc/runtime and a functional small SLOPOS shell atop SURYA. Treat basic native Unix-style APIs as a portability aid without weakening DHARMA rights.
+2. **Portable command-line applications:** evaluate a small libc compatibility surface, POSIX semantics and useful programs such as BusyBox/SQLite **only where toolchain and license permit**; compare build-from-source portability with any alternative syscall emulation.
+3. **Opt-in Linux ABI personality:** user-space-supervised syscall dispatcher and process model emulating a deliberately bounded **x86-64 or AArch64** Linux target with ELF interpreter, TLS, `mmap`, `clone`/`futex`, signals, file descriptors, poll/epoll, and relevant musl/glibc ABI behavior. Some Linux behaviors may require narrowly reviewed BRAHMA primitives, not an unrestricted kernel rewrite. This is **an architectural candidate**, not promise of comprehensive binary compatibility, security-equivalent Linux namespaces, or running Alpine distributions.
+4. **Graphical third-party runtimes:** add compatibility display/input/IPC and dynamic-library behaviors only after audited native platform services. The SLOPOS toolkit stays native; Linux UI frameworks and later Wine/Proton are **independently gated** and not automatically portable. Never advertise Windows game support from a trivial ELF/PE loader.
+
+**Native PARAMA and compatibility guest capabilities must remain separate.** A Linux-compatible guest must not receive global input/screen/device/file authority by default; define process/address-space rights and sandbox semantics explicitly. Reject rather than silently disable sandbox requirements; test negative cases. Keep ABI versions, reproducible syscall/ELF conformance fixtures, unsupported syscall list, graceful `ENOSYS`/error semantics, fault isolation and disk/network file lifecycle evidence.
+
+**Vinix resource lesson:** benchmark real boot-to-app memory and responsiveness under low-RAM constraints, not an isolated kernel boot figure. Optional compatibility servers must be unloaded when unused and preserve the future 512 MB Raspberry Pi Zero 2 W target. Platform-specific ARM64 porting is a separately gated hardware program, not enabled by this userspace plan.
+
+**VitruvianOS integration lesson:** copy *boundaries*, not its Linux-specific kernel modules. GARUDA should supervise boot, service activation/restart, seat/display ownership and orderly shutdown; SURYA is the single compositor and eventual SLOPOS is its client. Metadata/FS watches and typed shared-media services belong in capability-governed user-space servers after real filesystem, IPC, event delivery, audio and device driver contracts exist. No BeOS/Haiku API compatibility is implied or newly scheduled. Preserve accurate per-service resource accounting.
+
+| Future research packet | Prerequisite | First proof (NOT_RUN) |
+|---|---|---|
+| COMPAT-01 | M3–M5 native protected user programs | Small portable libc/CLI executable under native capabilities; full loader/ABI and denied-resource tests |
+| COMPAT-02 | COMPAT-01 and audited Linux ABI design | Versioned Linux syscall/ELF/musl subset with actual unmodified tiny guest program, correct error/futex/signal cases, no host privilege escape |
+| COMPAT-03 | COMPAT-02, SURYA/input, independent graphics/runtime | Selected actual third-party GUI workflow; native vs guest resource accounting; no unverified Wine/Alpine generality |
+| SVC-SESSION | GARUDA/SURYA driver and IPC proof | Crash/kill/restart, input and surface release, focus/seat lifecycle, absent-service behavior in a booted VM |
+| SVC-METADATA/MEDIA | Functional file/event/audio services | Real native metadata event and simple media flow with revoked capability negative cases, no eager always-on workloads |
+
+These do **not** replace the existing M0/M1 build/boot mission or SURYA's M7 demonstration, and are not current production gates.
+
+### 5.2.2 Original SLOPOS first-party applications on PARAMA (future portability only)
+
+**Explicit non-candidates:** JTorch is an independent Java numerical library and Benchmarks is an independent JVM QA/benchmark harness. Neither is a bundled SLOPOS/PARAMA desktop application, a Software catalog first-party entry, or a required PARAMA port. Their normal developer-library/tool use on platforms they independently support is unaffected. Do not assign app-icon, shell/theme, GPU/UI port or SLOPOS-specific milestone work to them.
+
+SLOPOS defines the **curated original-project inventory and fork exclusion policy** in `rust-slopos/docs/CONTRACT.md` §21.8.2. PARAMA is a potential additional host for only those independently authored, license-audited apps once it has proven their runtime/toolkit dependencies. Explicitly exclude upstream forks such as `palaashatri/tricycle` and `palaashatri/texture-auto-upscaler` from first-party branding. An upstream library may be reused under its license, but it is not claimed as authored by the SLOPOS/PARAMA team.
+
+Future application targets require **runtime readiness gates**:
+- Rust/Iced/Slint: native target ABI, allocator, threading, renderer, events, filesystem, input/clipboard, packaging.
+- JVM/Swing/Java libraries: proven supported JDK/JRE, Swing/AWT/headless needs, ONNX or native dependency support and process memory budget; no Java runtime is available by assertion.
+- Python/CustomTkinter/Diffusers: supported interpreter, Tk UI, PyTorch/native libraries, graphics, filesystem and clear memory preflight; do not claim 512 MB local diffusion execution.
+- Linux/Windows binaries: no native target until actual compatible Linux ABI personality or Windows API layer is independently verified; "SLOPOS target" on Linux must not be reinterpreted as PARAMA binary support.
+
+A lightweight core PARAMA/SLOPOS image must **not** preload all optional runtimes, model weights or developer tools. Preferred distribution is basic native apps + permissioned software catalog; app suites are installed only on supported hardware and with explicit user action. For each eligible app, retain an independently verified portability matrix (native source port / compatibility guest / blocked; platform ABI; UI and model dependencies; minimum memory; functionality and license). Nothing in this section calls these integrations complete.
+
 ## 6. Dependency, testing and governance rules
 
 - Keep Limine binary **pinned** and verified. The bundled minimal protocol
