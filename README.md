@@ -27,6 +27,12 @@ PARAMA's goal is native capability-enforced computing, not a Linux or Windows co
 
 Every milestone requires repeatable positive/negative VM tests, exact toolchain and source versions, failure traces, component-level licensing and honest hardware/performance claims. A kernel boot splash, loaded executable or isolated benchmark never proves a full desktop or compatibility layer. See [AGENTS.md §5.2](AGENTS.md#52-driver-portability-windows-compatibility-and-evidence-discipline).
 
+## Future Raspberry Pi Zero 2 W efficiency and ARM64 goal
+
+The **Pi Zero 2 W** (ARM Cortex-A53 ×4 at 1 GHz, **512 MB RAM**) is PARAMA's deliberately constrained future hardware reference. Kernel, IPC, driver and compositor architectures should be frugal by design: bounded memory/queues, event-driven idle behavior, prompt native input, safe cancellation, honest low-memory failure and graceful opt-out of heavyweight graphical/AI features. Native SLOPOS on PARAMA would share its Classic/Modern themes while keeping SURYA as compositor.
+
+**This is NOT a supported PARAMA platform today.** PARAMA targets **x86-64 first**, and the Zero 2 W requires a distinct ARMv8-A kernel/boot/interrupt/MMU/peripheral port, actual board drivers and testing—not an x86-64 image or merely recompilation. QEMU ARM virt tests are preparatory, not board proof. See [AGENTS.md §5.3](AGENTS.md#53-efficiency-first-architecture-and-future-raspberry-pi-zero-2-w--aarch64-port).
+
 ## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.
