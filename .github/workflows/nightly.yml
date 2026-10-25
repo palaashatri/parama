@@ -19,17 +19,21 @@ permissions:
 
 jobs:
   nightly:
+    # Manual runs on other refs build and test but never replace the main nightly.
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Skip if nightly already points at this commit
+      - name: Skip if this commit's nightly is already published
         id: gate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/nightly" --jq .sha 2>/dev/null || true)"
-          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] && [ "$tag_sha" = "$GITHUB_SHA" ]; then
+          # Judge by the published release's assets, not the tag, so a run
+          # that moved the tag but failed to upload is retried next time.
+          published="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/nightly" \
+            --jq "[.assets[].name | select(startswith(\"parama-nightly-${GITHUB_SHA::7}\"))] | length" 2>/dev/null || echo 0)"
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] && [ "${published:-0}" -ge 1 ]; then
             echo "build=false" >> "$GITHUB_OUTPUT"
           else
             echo "build=true" >> "$GITHUB_OUTPUT"
@@ -47,9 +51,21 @@ jobs:
         if: steps.gate.outputs.build == 'true'
         run: |
           bash tools/scripts/check.sh
-          bash tools/scripts/run_qemu_qa.sh --runs 3 --resolution 800x600 --resolution 640x480
+          # The full M1 gate (10 cold boots per mode), same as main CI.
+          bash tools/scripts/run_qemu_qa.sh --runs 10 --resolution 800x600 --resolution 640x480
+      - name: Preserve VM serial and screenshot evidence
+        if: always() && steps.gate.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: parama-nightly-evidence
+          path: |
+            build/qemu-com1.log
+            build/qa/qemu/**/*.log
+            build/qa/qemu/**/*.png
+            build/qa/qemu/summary.txt
+          if-no-files-found: warn
       - name: Stage nightly assets
-        if: steps.gate.outputs.build == 'true'
+        if: steps.gate.outputs.build == 'true' && github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
           short="${GITHUB_SHA::7}"
@@ -66,7 +82,7 @@ jobs:
           TXT
           (cd dist && sha256sum parama-nightly-* brahma-nightly-* > SHA256SUMS.txt)
       - name: Publish rolling nightly release
-        if: steps.gate.outputs.build == 'true'
+        if: steps.gate.outputs.build == 'true' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
