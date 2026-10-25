@@ -43,6 +43,16 @@ The **Pi Zero 2 W** (ARM Cortex-A53 ×4 at 1 GHz, **512 MB RAM**) is PARAMA's de
 
 A microkernel's isolation is only as strong as what sits beneath it. [AGENTS.md §2.7](AGENTS.md#27-hardening-dma-isolation-and-memory-safety-baseline-2027-review) adds planned requirements: CPU protections (SMEP/SMAP/UMIP), a Meltdown and Spectre policy, IOMMU confinement for any user-space driver that can DMA, fuzzing of untrusted-input parsers, and later Secure Boot/TPM research. [AGENTS.md §5.4](AGENTS.md#54-2027-hardware-host-and-toolchain-realities) records 2027 hardware realities: USB/xHCI instead of PS/2, ACPI, virtio and NVMe. It also notes that VirtualBox behaves differently under Hyper-V, and that the LLVM toolchain and container image should be pinned. None of this is implemented yet.
 
+## Nightly ISO
+
+Each push to `main` (and a daily schedule) builds the ISO, boots it under QEMU/OVMF, and publishes it to the [`nightly` pre-release](https://github.com/palaashatri/parama/releases/tag/nightly) with checksums. It shows the M1 kernel boot diagnostic; it is not a desktop yet.
+
+```bash
+qemu-system-x86_64 -machine q35 -m 512M \
+  -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+  -cdrom parama-nightly-<sha>.iso -serial stdio
+```
+
 ## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.

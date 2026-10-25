@@ -1,11 +1,20 @@
 name: PARAMA build and virtual-machine smoke test
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+concurrency:
+  group: parama-ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build-and-boot:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      # PRs boot each mode 3 times to keep feedback fast; main runs the full
+      # 10-boot M1 gate (also run by the nightly workflow).
+      QA_RUNS: ${{ github.event_name == 'pull_request' && '3' || '10' }}
     steps:
       - uses: actions/checkout@v4
       - name: Install Linux build and VM prerequisites
@@ -17,8 +26,8 @@ jobs:
         run: bash tools/scripts/build.sh
       - name: Run memory, framebuffer, and ELF host tests
         run: bash tools/scripts/check.sh
-      - name: M1 gate under OVMF/QEMU (10 cold boots x 3 modes, COM1 + pixel-exact screen)
-        run: bash tools/scripts/run_qemu_qa.sh --runs 10 --resolution 800x600 --resolution 640x480
+      - name: M1 gate under OVMF/QEMU (COM1 + pixel-exact screen)
+        run: bash tools/scripts/run_qemu_qa.sh --runs "$QA_RUNS" --resolution 800x600 --resolution 640x480
       - name: Preserve VM serial and screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
