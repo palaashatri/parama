@@ -536,7 +536,33 @@ disk, erasing partitions or changing Secure Boot settings for the experiment.
 
 These entries are aspirations, not runnable QA claims. Do not rename an M7 framebuffer primitive a completed SLOPOS desktop, and do not schedule this track before independent milestone prerequisites are verified.
 
-## 6. Dependency, testing and governance rules## 6. Dependency, testing and governance rules
+### 5.2 Driver portability, Windows compatibility and evidence discipline
+
+**Engineering rule effective now; compatibility features are FUTURE / NOT IMPLEMENTED.** The Windows-runtime approach explored by projects such as [Raven](https://useraven.org/news/introducing-raven/) is inspiration for separating execution personalities from host services, **not** a native PARAMA port, a Raven dependency, or approval to divert work from M0/M1. The executable evidence, ABI contracts, capability boundaries and M0–M10 gates remain authoritative.
+
+**Reuse tested foundations where sound; don't equate Linux source with portable drivers.**
+
+- Before authoring a kernel subsystem, graphics driver, runtime, parser, OS abstraction or full protocol implementation, compare existing upstream implementations, exact versions, platform assumptions, licenses and long-term maintenance. Define a **minimal versioned abstraction** and an actual failing use case before choosing to rewrite. A reuse decision must survive security, determinism and the C23 kernel/C++23 user-service boundary; third-party reuse does not excuse unverified behavior.
+- Linux DRM/KMS/Mesa and Intel/AMD/NVIDIA driver research is relevant, but Linux drivers depend on kernel-specific memory allocators, DMA/IOMMU, interrupts, synchronization, worker queues, power management, GEM/TTM, firmware and driver-model contracts. **Source access does not make them drop-in drivers for BRAHMA.** First verify software framebuffer → VirtIO GPU and SURYA's compositor client protocol in QEMU/VirtualBox; only then design a versioned compatibility or adapter strategy for one selected hardware family, with hardware/firmware-specific proof. Keep user-mode drivers in VISHWAKARMA and hardware rights behind DHARMA/BRAHMA. Evaluate permissive/compatible code and fully document any GPL-derived driver obligation.
+- Wine/Proton, Raven or another PE/Windows-API runtime might inform a **future user-space Windows personality**: PE image loading, Windows user-mode APIs, objects/handles, processes/threads, registry/filesystem and graphics translation behind capability-checked PARAMA service adapters. No Windows emulation logic belongs in BRAHMA merely to run applications. On Linux-hosted SLOPOS, Wine/Proton integration is the near-term path; PARAMA must independently implement required process/VM/IPC/runtime/filesystem/graphics facilities, and its security architecture must not be bypassed to satisfy Win32 compatibility.
+- Define **separate compatibility gates** for minimal PE loader, basic console GUI, install/uninstall and persistence, window interaction, real graphics API use, and full real-world application workflows. A loaded executable, framebuffer splash or DLL symbol resolving does not prove Windows compatibility, GPU acceleration or game support. Raven's host dependencies must be ported or replaced, never assumed available.
+- For any upstream component: retain the exact source commit/hash, documented license for every relevant component, firmware/microcode license and provenance, redistribution obligations, update owner and negative test cases. MIT applies to PARAMA's authored code only; do not label a combined GPL-derived kernel/runtime binary MIT without an explicit reviewed licensing decision.
+
+**Experimental evidence contract, even for early boot milestones:**
+
+| Gate class | Minimum defensible evidence |
+|---|---|
+| Build | Pinned toolchain/bootloader, reproducible binary hashes, ELF/ABI validation, source SHA and full failure logs |
+| Kernel correctness | Fault injection, invalid capability/IPC inputs, memory safety invariants, process isolation, revocation, resource cleanup and controlled service restart when that functionality exists |
+| Graphical client | Real independent user process, actual input→surface→frame change in an isolated VM; focus, lifecycle, keyboard, multi-window and permission-denied tests |
+| Driver/hardware | Emulator model/firmware, real device IDs, IOMMU/DMA/interrupt behavior, API compatibility, driver version and separate hardware QA; emulator screenshots do **not** establish physical GPU support |
+| Windows runtime (future) | Per-runtime and application version: install, launch, UI interaction, persistence, relaunch, rollback/uninstall, negative cases, exact unsupported APIs and truthful per-stage results |
+| Benchmark | Exact build/hardware/VM configuration, fixed workload, multiple trials, median/tail latency, boot timing, throughput, resource use, faults/crashes and side-by-side baseline under matched conditions |
+
+- Compare systems only with matching capabilities and workload. Faster launch of a tiny partial implementation cannot demonstrate superiority to Wine or a full Windows runtime. Preserve test failures and explicitly label `NOT_RUN`, `BLOCKED` or `PARTIAL` rather than declaring completion through test stubs or unconditional serial messages.
+- AI agents implement bounded approved interfaces and independently tested invariants; do not let a generated code plan redefine kernel architecture. Each PR includes scope/non-goals, reused dependency evaluation, ABI/security/license impact, reproducible commands, artifacts and hashes, negative cases, failure traces and unmet acceptance gates. Integrator retains single-source truth ownership under §§0/3/6. Production/hardware/Windows/SLOPOS promises require actual evidence, not speculative architecture prose.
+
+## 6. Dependency, testing and governance rules
 
 - Keep Limine binary **pinned** and verified. The bundled minimal protocol
   header is 0BSD; replacing it with the full official `limine.h` is encouraged
