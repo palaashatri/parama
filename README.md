@@ -33,6 +33,12 @@ Every milestone requires repeatable positive/negative VM tests, exact toolchain 
 
 A future SLOPOS desktop on PARAMA may expose only **owner-authored, license-audited apps** through an optional catalog. Tricycle and texture-auto-upscaler are forks and excluded from first-party branding. JTorch and Benchmarks are also excluded from the first-party **desktop application** catalog because they are library/QA tools, not desktop products; their independent development continues. Every Java, Python, Rust UI or ML app needs a **real PARAMA-specific runtime/graphics/ABI and memory proof**; no app or Linux/Wine binary runs there merely because its Linux version does. Small-device installations must avoid eager heavyweight runtimes and model files.
 
+## Future Raspberry Pi Zero 2 W efficiency and ARM64 goal
+
+The **Pi Zero 2 W** (ARM Cortex-A53 ×4 at 1 GHz, **512 MB RAM**) is PARAMA's deliberately constrained future hardware reference. Kernel, IPC, driver and compositor architectures should be frugal by design: bounded memory/queues, event-driven idle behavior, prompt native input, safe cancellation, honest low-memory failure and graceful opt-out of heavyweight graphical/AI features. Native SLOPOS on PARAMA would share its Classic/Modern themes while keeping SURYA as compositor.
+
+**This is NOT a supported PARAMA platform today.** PARAMA targets **x86-64 first**, and the Zero 2 W requires a distinct ARMv8-A kernel/boot/interrupt/MMU/peripheral port, actual board drivers and testing—not an x86-64 image or merely recompilation. QEMU ARM virt tests are preparatory, not board proof. See [AGENTS.md §5.3](AGENTS.md#53-efficiency-first-architecture-and-future-raspberry-pi-zero-2-w--aarch64-port).
+
 ## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.
