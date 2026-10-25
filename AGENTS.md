@@ -257,6 +257,18 @@ provisioning can use internal kernel calls, not ambient syscalls.
   pointer clipping, event queue overflow and rendering while a client crashes.
 - USB, GPU acceleration and multi-monitor support are post-M10 milestones.
 
+### 2.7 Hardening, DMA isolation and memory-safety baseline (2027 review)
+
+**Proposed requirements, recorded 2026-10-25. Each applies at the milestone named, and none of them is implemented yet.** They exist because a microkernel's isolation claims are only as strong as the CPU features, DMA confinement and parser safety beneath them.
+
+- **CPU protection features (M2/M3):** enable NX, CR0.WP, SMEP, SMAP and UMIP when the CPU reports them. With SMAP on, user-memory access happens only inside explicit copy-in/copy-out helpers that use `stac`/`clac`. Log at boot which features are active. A missing feature is recorded, never assumed.
+- **Speculative-execution side channels (before any isolation claim on real hardware):** the higher-half kernel is mapped in every user address space (§2.1), so on CPUs affected by Meltdown, user code could read kernel memory. Read `IA32_ARCH_CAPABILITIES`. If the CPU lacks `RDCL_NO`, use separate user and kernel page tables (KPTI-style) or label the isolation claim as not holding on that CPU. Choose and document Spectre v1/v2 mitigations (retpoline or eIBRS/IBRS, plus `lfence` and bounds masking on user-controlled indices) before M10.
+- **Control-flow protection (post-M5 goal):** evaluate Intel CET, meaning kernel IBT through `-fcf-protection=branch` and `ENDBR`, and user-mode shadow stacks once the context-switch path saves CET state. Until then, record the absence.
+- **Compiler hardening:** the kernel currently builds with `-fno-stack-protector`, which is acceptable for M1. Once BRAHMA has a per-CPU canary source (M3), switch to a stack protector, and evaluate `-ftrivial-auto-var-init=zero`. Ring-3 runtimes get the stack protector from their first release.
+- **DMA isolation (required before any DMA-capable user-space driver):** a ring-3 driver that can program a DMA-capable device (virtio, NVMe, xHCI, network, GPU) can read and write any physical memory unless an IOMMU confines the device. Such a driver therefore needs its own IOMMU domain (Intel VT-d or AMD-Vi, discovered through the ACPI DMAR/IVRS tables), mapping only buffers it was granted through capabilities. Without a working IOMMU the driver is **trusted**, and the documentation must say so. M6's framebuffer and PS/2 services need no DMA, so this does not block M6. QEMU can emulate an Intel IOMMU (`-device intel-iommu`); VirtualBox's IOMMU emulation must be verified before it is relied on.
+- **Memory safety for C23/C++23:** parsers of untrusted input (the ELF loader, IPC payload validation, capability-table operations, future filesystem and asset parsing) get host-side fuzz harnesses (libFuzzer or equivalent) run with AddressSanitizer and UndefinedBehaviorSanitizer, plus negative tests in the existing M2–M5 gates. A memory-safe language for selected ring-3 services or parsers (for example Rust) is a candidate that needs an owner decision. It is not adopted by this section, and it would not change the C23 kernel or the C++23 service default.
+- **Secure and measured boot (post-M10 research):** UEFI Secure Boot through a signed loader chain, and TPM 2.0 measured boot of BRAHMA and its init modules. VirtualBox 7 and QEMU with OVMF/swtpm can emulate both for testing. No trust claim is made until the chain is verified.
+
 ---
 
 ## 3. Coding, build, quality and repository contracts
@@ -412,7 +424,7 @@ a mode the firmware cannot provide is recorded as unavailable, never as passed.
 
 **Gate:** allocator random stress + exhaustion, hostile malformed memory maps,
 allocation/free uniqueness, deliberate exception log verifies vector and
-registers, no triple-fault/reboot; no interrupts enabled prematurely.
+registers, no triple-fault/reboot; no interrupts enabled prematurely. The boot log lists which §2.7 CPU protection features (NX, WP, SMEP, SMAP, UMIP) are active.
 
 ### M3 — KĀLA tasking and Ring 3
 
@@ -454,6 +466,8 @@ address-space inspection.
   driver tasks. IRQ notification capabilities and bounded event queues.
 - No user-space hardware authority without capability; port permissions
   must be precisely scoped. Display/video protocol v1 defined.
+- M6 drivers use no DMA. A later DMA-capable driver is accepted as isolated
+  only under §2.7's IOMMU rule; otherwise it is documented as trusted.
 
 **Gate:** simulated pointer/key events originate from VM-injected scancodes,
 driver tasks are in ring 3, killing input driver leaves kernel alive, and
@@ -646,6 +660,16 @@ A lightweight core PARAMA/SLOPOS image must **not** preload all optional runtime
 **Provisional usability aspirations pending hardware baseline, not acceptance claims:** once a genuine native desktop exists, at a documented **1280×720** configuration preserve sufficient free memory for an additional lightweight app (candidate **≥128 MiB free/available**, board-specific definition to be validated), target **p95 ≤150 ms** simple local input-to-visible response under light load, and avoid sustained busy polling, continuous idle frames, OOM and uncontrolled swap. Record cold/warm attempts with exact firmware, clock, temperature, display resolution, DMA/GPU reservation, backing storage, build SHA, serial trace and real device memory statistics. A future measured limit may replace these provisional hypotheses without erasing failed evidence. No fabricated "supports Pi" labels.
 
 **Governance:** ARM-00–04 are a **separately authorized future architecture/board port**. Work on x86-64 M0/M1 first; never edit x86 boot/linker/ABI simply to shoehorn ARM or let speculative porting invalidate existing isolation/security tests. If no Pi hardware is available for verification, mark `NOT_RUN/BLOCKED` rather than replacing board proof with emulation.
+
+### 5.4 2027 hardware, host and toolchain realities
+
+**Planning notes recorded 2026-10-25; not milestones.** They keep later gates honest about what 2027 machines and hosts actually look like.
+
+- **Input and buses on real hardware:** most current laptops and many desktops have no PS/2 controller, or only firmware emulation of one. Real-hardware input therefore needs an xHCI USB host driver and USB HID. PS/2 stays the VM path for M6. Interrupt routing, SMP bring-up and timers need ACPI (MADT, I/O APIC, HPET or the TSC deadline timer). Evaluate an existing ACPI implementation, such as ACPICA or uACPI, under §5.2's license and reuse rules rather than writing an AML interpreter from scratch.
+- **First standard drivers:** in QEMU, virtio devices (virtio-gpu, virtio-input, virtio-blk, virtio-net) are small, well-specified, DMA-capable targets. They are good first proofs for capability-scoped drivers once §2.7's DMA rule can be met. NVMe is the common real-hardware storage target. VirtualBox offers different virtual devices (for example VMSVGA graphics), so each host's device set is recorded separately.
+- **Windows 11 QA host:** when Hyper-V, WSL2 or Windows "memory integrity" (VBS) is enabled, VirtualBox runs on top of the Windows Hypervisor Platform. This changes timing and performance, and sometimes behavior. Record which mode the QA host used with every VirtualBox result.
+- **Toolchain pinning:** M0 currently uses the Clang/LLD 18 shipped by Ubuntu 24.04. Ubuntu 26.04 LTS ships newer compilers. Pin the exact LLVM version and the container image digest for CI and Docker builds (§3.3 already notes the digest gap), and treat a compiler upgrade as its own change, verified with the reproducible-hash check from M0. Clang 18 accepts `-std=c23`, so moving the kernel flag from `-std=c2x` is a small, separate build change.
+- **Boot path:** Limine stays pinned and checksummed (§6). Before relying on Limine features beyond the base protocol, such as Secure Boot support (§2.7), verify them for the pinned version.
 
 ## 6. Dependency, testing and governance rules
 

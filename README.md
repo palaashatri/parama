@@ -39,6 +39,10 @@ The **Pi Zero 2 W** (ARM Cortex-A53 ×4 at 1 GHz, **512 MB RAM**) is PARAMA's de
 
 **This is NOT a supported PARAMA platform today.** PARAMA targets **x86-64 first**, and the Zero 2 W requires a distinct ARMv8-A kernel/boot/interrupt/MMU/peripheral port, actual board drivers and testing—not an x86-64 image or merely recompilation. QEMU ARM virt tests are preparatory, not board proof. See [AGENTS.md §5.3](AGENTS.md#53-efficiency-first-architecture-and-future-raspberry-pi-zero-2-w--aarch64-port).
 
+## 2027 readiness notes
+
+A microkernel's isolation is only as strong as what sits beneath it. [AGENTS.md §2.7](AGENTS.md#27-hardening-dma-isolation-and-memory-safety-baseline-2027-review) adds planned requirements: CPU protections (SMEP/SMAP/UMIP), a Meltdown and Spectre policy, IOMMU confinement for any user-space driver that can DMA, fuzzing of untrusted-input parsers, and later Secure Boot/TPM research. [AGENTS.md §5.4](AGENTS.md#54-2027-hardware-host-and-toolchain-realities) records 2027 hardware realities: USB/xHCI instead of PS/2, ACPI, virtio and NVMe. It also notes that VirtualBox behaves differently under Hyper-V, and that the LLVM toolchain and container image should be pinned. None of this is implemented yet.
+
 ## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.
