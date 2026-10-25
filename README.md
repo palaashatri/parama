@@ -13,7 +13,13 @@ boot diagnostic**, not a desktop environment.
 The authoritative architecture, ABI proposals, milestones and completion evidence
 are in [AGENTS.md](AGENTS.md); do not create separate competing truth documents.
 
-## Build on Windows (VirtualBox + WSL2)
+## Future desktop direction: SLOPOS integration
+
+An eventual goal is to host a **native [SLOPOS](https://github.com/palaashatri/rust-slopos) shell and shared UI toolkit** on PARAMA after BRAHMA/GARUDA/SURYA deliver actual isolated user applications, graphics/input and capability/IPC services. The future integration must use a deliberate SURYA/SLOPOS single-compositor interface, capability-secured platform adapters and real non-Linux native runtimes. System 7/Platinum Classic and optional Loom Design Bible-inspired themes are aspirations; [Loom](https://github.com/palaashatri/rust-loom) application compatibility would require additional independent Rust/Slint platform work.
+
+**PLANNED, not implemented.** This is not part of the current M0–M10 kernel/desktop acceptance; the existing VirtualBox/QEMU boot and isolation milestones come first. See [AGENTS.md §5.1](AGENTS.md#51-future-slopos-desktop-hosting-goal-separate-gated-integration-track).
+
+## Build on Windows (VirtualBox + WSL2)## Build on Windows (VirtualBox + WSL2)
 
 Recommended: Windows 11, PowerShell 7+, Ubuntu under WSL2, VirtualBox 7.2.
 VirtualBox runs as a native **Windows** application. WSL only runs the Linux

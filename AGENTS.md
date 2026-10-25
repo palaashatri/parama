@@ -512,7 +512,31 @@ ACPI/APIC/IOMMU support, PCI enumeration and drivers, plus safety/recovery
 strategies. Never encourage installing this unfinished kernel onto a primary
 disk, erasing partitions or changing Secure Boot settings for the experiment.
 
-## 6. Dependency, testing and governance rules
+### 5.1 Future SLOPOS desktop-hosting goal (separate, gated integration track)
+
+**Status: PLAN ONLY / NOT IMPLEMENTED.** Long-term, [SLOPOS](https://github.com/palaashatri/rust-slopos) may provide a reusable native desktop shell, coherent System 7/Platinum Classic-inspired toolkit and optional Loom-inspired theme on PARAMA, *once PARAMA genuinely supports protected user applications and graphical services*. This is **not part of M0–M10**, and is not a substitute for the existing SURYA compositor, GARUDA supervision, BRAHMA capability protections or current Doom acceptance. PARAMA remains an independent OS, not a Linux distro or compatibility layer masquerading as a kernel.
+
+**Non-negotiable boundaries:**
+
+- SLOPOS today targets Linux, Rust, X11/Openbox, GTK-backed components and Linux service providers. These APIs **do not exist on PARAMA**. Future SLOPOS on PARAMA must use an explicit capability-checked, versioned **PlatformBackend** port for process launch, storage/files, clock, threads, IPC, shared memory, window surfaces, input, clipboard, font/text, audio, network and OS permission services. Unsupported services are exposed as unavailable, never faked by Linux shims.
+- **One compositor authority:** SURYA owns PARAMA's graphical display lifecycle in the original architecture. Decide and prove either (a) SLOPOS shell/toolkit running as a client of SURYA through a versioned surface/input/clipboard protocol, or (b) a deliberate future reviewed adoption of SLOPOS compositor mechanisms inside the SURYA authority. Never launch two authorities or silently replace SURYA before its own acceptance. SLOPOS's potential later Wayland compositor is a different Linux roadmap with no automatic PARAMA ABI compatibility.
+- The SLOPOS toolkit and shell must run outside BRAHMA/ring 0, with the same capability/IPC constraints as any untrusted native app. Keep fonts, layout, rendering and theme data in user mode; no extra kernel GUI code or omnipotent screen/input agent.
+- Optional [Loom](https://github.com/palaashatri/rust-loom) integration is a **further independent dependency**: Loom uses Rust/Slint, and a native PARAMA target would require an actually working Rust target/runtime, allocator/threading, filesystem, graphics/Slint backend, input/font services and app packaging. SLOPOS being shown on PARAMA is not proof that Loom runs.
+- Future SLOPOS Vision and Intelligence features must obey PARAMA's capability security. Model inference, screen capture, app automation and any cross-app content sharing require revocable, scoped permissions, clear user intent and enforced isolation. X11-style global unrestricted input capture is not a future security contract.
+- Support clean-room licensing, original assets, separate build/acceptance evidence and independent projects. Do not let a desired themed demo redefine the kernel, IPC, filesystem, driver or release-readiness gates.
+
+**Prerequisites before any integration prototype:** M3 genuine ring-3 process isolation; M4 capability transfer/revocation and IPC; M5 real independent user executable loader/runtime; M6 usable user-mode input/video interfaces; M7 real GARUDA/SURYA graphical app lifecycle; adequate filesystem and rendering APIs for the bounded sample. Subsequent daily-use positioning depends on reliable persistent storage, keyboard/mouse/hardware drivers, update/recovery, networking/audio and policy security—these are **not** all delivered by M10.
+
+| Future gate | Proposed evidence (after prerequisites, not a current milestone) |
+|---|---|
+| PRM-SLOPOS-01 | Freeze a minimal versioned SURYA–SLOPOS surface/input/clipboard ABI and its capability ownership; denied/invalid capability tests must fail closed. |
+| PRM-SLOPOS-02 | Boot PARAMA in QEMU/VirtualBox and start a **separate ring-3 SLOPOS UI sample** under GARUDA, with real framebuffer/window, visible pointer and keyboard interaction, both supported classic and optional modern theme tokens, and verified resource isolation. |
+| PRM-SLOPOS-03 | Launch, close, crash and restart the sample independently of BRAHMA/SURYA; prove no cross-process surface/input leakage, unauthorized control or kernel panic; record screenshots and serial/VM artifacts. |
+| PRM-SLOPOS-04 | Only when durable file semantics exist, open/save/reopen a native sample; optionally evaluate Loom app portability as its own **separate** future work, never infer it from the sample GUI. |
+
+These entries are aspirations, not runnable QA claims. Do not rename an M7 framebuffer primitive a completed SLOPOS desktop, and do not schedule this track before independent milestone prerequisites are verified.
+
+## 6. Dependency, testing and governance rules## 6. Dependency, testing and governance rules
 
 - Keep Limine binary **pinned** and verified. The bundled minimal protocol
   header is 0BSD; replacing it with the full official `limine.h` is encouraged
