@@ -564,6 +564,32 @@ These entries are aspirations, not runnable QA claims. Do not rename an M7 frame
 - Compare systems only with matching capabilities and workload. Faster launch of a tiny partial implementation cannot demonstrate superiority to Wine or a full Windows runtime. Preserve test failures and explicitly label `NOT_RUN`, `BLOCKED` or `PARTIAL` rather than declaring completion through test stubs or unconditional serial messages.
 - AI agents implement bounded approved interfaces and independently tested invariants; do not let a generated code plan redefine kernel architecture. Each PR includes scope/non-goals, reused dependency evaluation, ABI/security/license impact, reproducible commands, artifacts and hashes, negative cases, failure traces and unmet acceptance gates. Integrator retains single-source truth ownership under §§0/3/6. Production/hardware/Windows/SLOPOS promises require actual evidence, not speculative architecture prose.
 
+### 5.3 Efficiency-first architecture and future Raspberry Pi Zero 2 W / AArch64 port
+
+**Reference device:** Raspberry Pi Zero 2 W, **quad-core 1 GHz ARMv8-A Cortex-A53 / 512 MB shared RAM / VideoCore IV** (hardware specification: https://www.raspberrypi.com/documentation/computers/zero.html). **Status: DESIGN GOAL / NOT IMPLEMENTED / NOT IN M0–M10 CURRENT x86-64 ACCEPTANCE.** PARAMA's existing x86-64 BRAHMA/Limine/UEFI/VirtualBox-QEMU milestone plan remains authoritative. Aarch64 ARMv8-A is a **different instruction set and board bring-up**, not an extra compiler flag or something validated by x86-64 VM acceptance.
+
+**Kernel/service efficiency contracts applicable to current code reviews:**
+
+- Keep BRAHMA minimal and predictable: no high-frequency busy-polling or periodic redraw when idle; interrupt/timer-driven waits, bounded IPC queues, bounded handles and object pools, lazy provisioning, zero-copy/shared-memory *only when security and ownership are correct*, lightweight context switches, explicit OOM handling and bounded crash recovery.
+- Allocate memory based on **available physical RAM**, preserving a system reserve for kernel, services and framebuffer. Prevent user-space services, compositor, background jobs or AI features from monopolizing memory. Measure high-water marks, fragmentation, internal allocator overhead and shared-memory accounting; `alloc success` does not establish sustainability.
+- Critical behavior on 512 MB: boot to a small interactive SLOPOS/SURYA desktop when that target exists, accept text/pointer input promptly, launch/close a tiny native app, retain focus and cancel/stage long disk or CPU work. Network and microSD slowness may delay task completion but must never lock all input or cause fabricated completion. Full modern graphics, 3D acceleration, large Loom documents or on-device ML cannot be promised within that RAM budget.
+- Native port design for future ARM64: choose and document Pi-specific firmware or U-Boot boot path (do **not** assume x86 Limine UEFI, APIC or x86 interrupt ABI); ARMv8 exception levels, page tables, ASIDs, cache/TLB barriers, syscall/trap entry, timer/interrupt controller (including BCM2710's actual interrupt topology), multicore bring-up, MMIO/peripheral memory, mailbox/framebuffer, SD/storage, serial and video/input. Preserve architecture-neutral **DHARMA capability**, **VĀYU IPC**, **GARUDA supervisor**, **SURYA compositor** contracts rather than forking a second operating system. Never claim Linux driver code ports without kernel DMA/IRQ/firmware/DRM compatibility and license review (§5.2).
+- **One graphical platform:** SLOPOS remains PARAMA's intended full desktop UI (per §5.1), with SURYA its only compositor. Pi's VideoCore IV means no assumed Vulkan/HDR/VRR/compositor GPU effects; require a minimal software/rendering path and honest optional feature fallback. Theme, icon and appkit semantics can be shared even if visual effects vary with hardware.
+
+### Future board evidence and proposed edge targets
+
+| Future ID | Required genuine evidence |
+|---|---|
+| ARM-00 | Freeze platform-specific boot/ABI/exception/timer/interrupt/device interfaces after an architecture review; boot minimal AArch64 kernel in QEMU virt **with explicitly labeled limits** and prove fault/interrupt/serial behavior. |
+| ARM-01 | Actual Pi Zero 2 W board boot, console/memory-map/interrupt/timer test, real 512 MB accounting, fault isolation and reproducible cold boots. No platform acceptance from QEMU virt alone. |
+| ARM-02 | Correct user-ring (EL0), per-process address spaces, capability isolation, IPC, native ELF loading and user-mode driver interfaces with bounded allocation, negative tests and cleanup on ARM64. |
+| ARM-03 | SURYA on actual VideoCore IV/display path or verified framebuffer fallback: visible pointer/keyboard/surfaces, real input→frame events, no idle redraw storm, service restart and denied capability paths. |
+| ARM-04 | Native SLOPOS small-shell/app workflow with classic/modern theme tokens, measured idle/resident memory, frame/input p95, low-memory pressure and shutdown/restart evidence. Other capability tiers must degrade truthfully. |
+
+**Provisional usability aspirations pending hardware baseline, not acceptance claims:** once a genuine native desktop exists, at a documented **1280×720** configuration preserve sufficient free memory for an additional lightweight app (candidate **≥128 MiB free/available**, board-specific definition to be validated), target **p95 ≤150 ms** simple local input-to-visible response under light load, and avoid sustained busy polling, continuous idle frames, OOM and uncontrolled swap. Record cold/warm attempts with exact firmware, clock, temperature, display resolution, DMA/GPU reservation, backing storage, build SHA, serial trace and real device memory statistics. A future measured limit may replace these provisional hypotheses without erasing failed evidence. No fabricated "supports Pi" labels.
+
+**Governance:** ARM-00–04 are a **separately authorized future architecture/board port**. Work on x86-64 M0/M1 first; never edit x86 boot/linker/ABI simply to shoehorn ARM or let speculative porting invalidate existing isolation/security tests. If no Pi hardware is available for verification, mark `NOT_RUN/BLOCKED` rather than replacing board proof with emulation.
+
 ## 6. Dependency, testing and governance rules
 
 - Keep Limine binary **pinned** and verified. The bundled minimal protocol
