@@ -15,7 +15,9 @@ are in [AGENTS.md](AGENTS.md); do not create separate competing truth documents.
 
 ## Future desktop direction: SLOPOS integration
 
-An eventual goal is to host a **native [SLOPOS](https://github.com/palaashatri/rust-slopos) shell and shared UI toolkit** on PARAMA after BRAHMA/GARUDA/SURYA deliver actual isolated user applications, graphics/input and capability/IPC services. The future integration must use a deliberate SURYA/SLOPOS single-compositor interface, capability-secured platform adapters and real non-Linux native runtimes. System 7/Platinum Classic and optional Loom Design Bible-inspired themes are aspirations; [Loom](https://github.com/palaashatri/rust-loom) application compatibility would require additional independent Rust/Slint platform work.
+**[SLOPOS](https://github.com/palaashatri/rust-slopos) is the intended eventual full desktop environment on PARAMA**, with BRAHMA as kernel, GARUDA supervising native apps and SURYA as the sole compositor/windowing service. PARAMA M7 retains a **minimal provisional proof shell** for testing graphics/input/restarts; it is not a rival production desktop. SLOPOS would need versioned capability-checked adapters and a genuine non-Linux user-space runtime before anything can run natively.
+
+Future SLOPOS personalization is **Windows XP-class**, not merely dark/light: clean-room **System 7/Platinum Classic**, **Sinty-inspired Modern**, additional declarative styles, independently selectable Dock/taskbar layout profiles, icon packs, accessibility prefs and coherent first-party app controls. PARAMA inherits SLOPOS's licensed symbolic icon manifest and, later, original brand-icon family; it must not fork another theming engine. [Loom](https://github.com/palaashatri/rust-loom) portability remains a separate Rust/Slint/backend challenge.
 
 **PLANNED, not implemented.** This is not part of the current M0–M10 kernel/desktop acceptance; the existing VirtualBox/QEMU boot and isolation milestones come first. See [AGENTS.md §5.1](AGENTS.md#51-future-slopos-desktop-hosting-goal-separate-gated-integration-track).
 
