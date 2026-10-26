@@ -17,7 +17,7 @@ are in [AGENTS.md](AGENTS.md); do not create separate competing truth documents.
 
 **[SLOPOS](https://github.com/palaashatri/rust-slopos) is the intended eventual full desktop environment on PARAMA**, with BRAHMA as kernel, GARUDA supervising native apps and SURYA as the sole compositor/windowing service. PARAMA M7 retains a **minimal provisional proof shell** for testing graphics/input/restarts; it is not a rival production desktop. SLOPOS would need versioned capability-checked adapters and a genuine non-Linux user-space runtime before anything can run natively.
 
-Future SLOPOS personalization is **Windows XP-class**, not merely dark/light: clean-room **System 7/Platinum Classic**, **Sinty-inspired Modern**, additional declarative styles, independently selectable Dock/taskbar layout profiles, icon packs, accessibility prefs and coherent first-party app controls. PARAMA inherits SLOPOS's licensed symbolic icon manifest and, later, original brand-icon family; it must not fork another theming engine. [Loom](https://github.com/palaashatri/rust-loom) portability remains a separate Rust/Slint/backend challenge.
+Future SLOPOS personalization is **Windows XP-class**, not merely dark/light: clean-room **System 7/Platinum Classic**, **Sinty-inspired Modern**, additional declarative styles, independently selectable Dock/taskbar layout profiles, icon packs, accessibility prefs and coherent first-party app controls. PARAMA inherits SLOPOS's licensed symbolic icon manifest and, later, original brand-icon family. Its design rules come from the [SLOPOS Design Bible](https://github.com/palaashatri/rust-slopos/blob/main/docs/CONTRACT.md#52-slopos-design-bible--design-language-principles-tokens-and-review), and it must not fork another theming engine. [Loom](https://github.com/palaashatri/rust-loom) portability remains a separate Rust/Slint/backend challenge.
 
 **PLANNED, not implemented.** This is not part of the current M0–M10 kernel/desktop acceptance; the existing VirtualBox/QEMU boot and isolation milestones come first. See [AGENTS.md §5.1](AGENTS.md#51-future-slopos-desktop-hosting-goal-separate-gated-integration-track).
 
@@ -38,6 +38,20 @@ A future SLOPOS desktop on PARAMA may expose only **owner-authored, license-audi
 The **Pi Zero 2 W** (ARM Cortex-A53 ×4 at 1 GHz, **512 MB RAM**) is PARAMA's deliberately constrained future hardware reference. Kernel, IPC, driver and compositor architectures should be frugal by design: bounded memory/queues, event-driven idle behavior, prompt native input, safe cancellation, honest low-memory failure and graceful opt-out of heavyweight graphical/AI features. Native SLOPOS on PARAMA would share its Classic/Modern themes while keeping SURYA as compositor.
 
 **This is NOT a supported PARAMA platform today.** PARAMA targets **x86-64 first**, and the Zero 2 W requires a distinct ARMv8-A kernel/boot/interrupt/MMU/peripheral port, actual board drivers and testing—not an x86-64 image or merely recompilation. QEMU ARM virt tests are preparatory, not board proof. See [AGENTS.md §5.3](AGENTS.md#53-efficiency-first-architecture-and-future-raspberry-pi-zero-2-w--aarch64-port).
+
+## 2027 readiness notes
+
+A microkernel's isolation is only as strong as what sits beneath it. [AGENTS.md §2.7](AGENTS.md#27-hardening-dma-isolation-and-memory-safety-baseline-2027-review) adds planned requirements: CPU protections (SMEP/SMAP/UMIP), a Meltdown and Spectre policy, IOMMU confinement for any user-space driver that can DMA, fuzzing of untrusted-input parsers, and later Secure Boot/TPM research. [AGENTS.md §5.4](AGENTS.md#54-2027-hardware-host-and-toolchain-realities) records 2027 hardware realities: USB/xHCI instead of PS/2, ACPI, virtio and NVMe. It also notes that VirtualBox behaves differently under Hyper-V, and that the LLVM toolchain and container image should be pinned. None of this is implemented yet.
+
+## Nightly ISO
+
+Each push to `main` (and a daily schedule) builds the ISO, boots it under QEMU/OVMF, and publishes it to the [`nightly` pre-release](https://github.com/palaashatri/parama/releases/tag/nightly) with checksums. It shows the M1 kernel boot diagnostic; it is not a desktop yet.
+
+```bash
+qemu-system-x86_64 -machine q35 -m 512M \
+  -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+  -cdrom parama-nightly-<sha>.iso -serial stdio
+```
 
 ## Build on Windows (VirtualBox + WSL2)
 
