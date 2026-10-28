@@ -698,3 +698,31 @@ logs and screenshot, then repeat 10 cold boots. Once green, partition M2 into
 `PMM free/reclaim`, `paging`, `GDT/IDT + fault diagnostics`, and `timer plumbing`
 with interface-first PRs and independent host unit tests. Do not work on SURYA
 or YAMA until the Ring 3 and IPC gates are real.
+
+---
+
+## Future optional SLOPOS Intelligence service (2026-10-28 addition)
+
+**Status: PLAN. Not a PARAMA feature at M1.** The authoritative detailed
+integration contract is [docs/intelligence-integration.md](docs/intelligence-integration.md).
+The provisional host-testable C23 frame contract is
+[`include/parama/abi/intelligence.h`](include/parama/abi/intelligence.h).
+Its framing validator checks lengths and versions **only**; neither the model
+nor this header grants authority. This extension does not change the current
+BRAHMA kernel build or promote the M3–M7 milestones.
+
+At the earliest after M4/M5, GARUDA can supervise an unprivileged, opt-in
+assistant service using VAYU and a separate action broker holding attenuated
+DHARMA capabilities. The model may propose a typed app intent, but the broker
+must validate target identity, per-app scopes, user consent, cancellation,
+revocation and result boundaries. Sensitive context sources (files, microphone,
+screen, messages, notifications) each require independent grants. Personal
+content must not be sent to cloud backends without explicit permission.
+Never let a model supply executable paths, arbitrary commands, raw pointers,
+capability handles, or system calls. No AI inference, LFM weights, audio runtime
+or large model allocator belongs in the kernel. On the Pi Zero 2 W, the service
+must remain absent or use an explicit external backend; ARM64 port and memory
+budgets still need actual validation.
+
+Host ABI unit tests are a **CODE-only** result; the M4 kernel IPC, Ring 3 broker,
+trusted confirmation UI, and end-to-end action tests remain entirely unbuilt.
