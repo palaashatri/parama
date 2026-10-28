@@ -21,6 +21,15 @@ Future SLOPOS personalization is **Windows XP-class**, not merely dark/light: cl
 
 **PLANNED, not implemented.** This is not part of the current M0–M10 kernel/desktop acceptance; the existing VirtualBox/QEMU boot and isolation milestones come first. See [AGENTS.md §5.1](AGENTS.md#51-future-slopos-desktop-hosting-goal-separate-gated-integration-track).
 
+## Future opt-in desktop intelligence (design contract)
+
+A provisional, host-testable PARAMA service framing ABI is now in
+[`include/parama/abi/intelligence.h`](include/parama/abi/intelligence.h), with
+[architecture and evidence gates](docs/intelligence-integration.md). This is
+**not an assistant running on PARAMA**. The Linux-side SLOPOS opt-in preview
+remains a separate binary and requires Ollama. A native unprivileged service
+will require M3–M7 primitives, a permissioned app-action broker and user consent.
+
 ## Platform compatibility and evidence policy
 
 PARAMA's goal is native capability-enforced computing, not a Linux or Windows compatibility facade. Driver research may reuse concepts and appropriately licensed upstream implementations, but Linux graphics drivers require real kernel-specific DMA, memory, interrupts, firmware and scheduling support—not a simple recompilation. Wine/Raven-like Windows execution remains a separately gated **future user-space compatibility personality** after genuine PARAMA process, storage, graphics and IPC fundamentals are proven.
