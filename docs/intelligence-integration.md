@@ -49,4 +49,4 @@ proves end-to-end IPC.
   SLOPOS-native action, once M7 desktop is in place
 
 The Linux implementation is tracked separately in
-[the SLOPOS repository](https://github.com/palaashatri/rust-slopos/blob/main/docs/intelligence.md).
+[the SLOPOS repository](https://github.com/palaashatri/rust-slopos/blob/feature/local-intelligence-v1/docs/intelligence.md).
